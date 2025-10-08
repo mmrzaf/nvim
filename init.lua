@@ -7,6 +7,7 @@ require('config.keymaps')
 require('config.autocmds')
 require('config.lazy')
 
+require('clipboard').setup()
 require('dev').setup()
 
 

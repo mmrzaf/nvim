@@ -14,6 +14,8 @@ end
 -- Basic motions & utility -----------------------------------------------------
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", "Clear search highlights")
 map({ "n", "x" }, "<leader>y", '"+y', "Yank → system clipboard")
+map({ "n", "x" }, "<leader>p", '"+p', "Paste from system clipboard (after)")
+map("n", "<leader>P", '"+P', "Paste from system clipboard (before)")
 
 -- Save / quit kept simple and unique
 map("n", "<leader>w", "<cmd>write<CR>", "Save file")
