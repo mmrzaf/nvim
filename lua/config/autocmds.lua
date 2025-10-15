@@ -1,13 +1,18 @@
 local aug = vim.api.nvim_create_augroup
 local au = vim.api.nvim_create_autocmd
 
+-- Yank highlight
 au("TextYankPost", {
 	group = aug("yank_highlight", { clear = true }),
 	callback = function()
 		vim.highlight.on_yank({ timeout = 120 })
 	end,
 })
+
+-- Equalize splits on resize
 au("VimResized", { group = aug("resize_splits", { clear = true }), command = "tabdo wincmd =" })
+
+-- Restore cursor position
 au("BufReadPost", {
 	group = aug("restore_cursor", { clear = true }),
 	callback = function()
@@ -18,9 +23,11 @@ au("BufReadPost", {
 		end
 	end,
 })
+
+-- Checktime when regaining focus
 au({ "FocusGained", "BufEnter" }, { group = aug("checktime", { clear = true }), command = "checktime" })
 
--- keep scratch/aux buffers harmless
+-- Keep scratch/aux buffers harmless
 au("BufEnter", {
 	group = aug("scratch_sane", { clear = true }),
 	callback = function()
@@ -32,46 +39,18 @@ au("BufEnter", {
 	end,
 })
 
--- trim trailing spaces on write (except markdown/diff)
+-- Trim trailing spaces on write (except markdown/diff) without Vim regex escapes in this file
 au("BufWritePre", {
 	group = aug("trim_ws", { clear = true }),
 	callback = function()
 		if vim.bo.filetype ~= "markdown" and not vim.wo.diff then
 			local view = vim.fn.winsaveview()
-			vim.cmd([[%s/\s\+$//e]])
+			local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+			for i, l in ipairs(lines) do
+				lines[i] = l:gsub("%s+$", "")
+			end
+			vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
 			vim.fn.winrestview(view)
-		end
-	end,
-})
-
--- Terminal top bar (winbar)
-local termbar = aug("term_topbar", { clear = true })
-vim.api.nvim_set_hl(0, "TermTopBar", { link = "StatusLine", default = true })
-
-local function set_term_winbar(bufnr)
-	if vim.bo[bufnr].buftype ~= "terminal" then
-		return
-	end
-	local id = vim.b[bufnr].terminal_job_id or "?"
-	local cwd = vim.fn.fnamemodify(vim.fn.getcwd(-1, -1), ":t")
-	local left, right = ("   term %s  • %s "):format(id, cwd), " <Esc> normal "
-	--vim.wo.winbar = ("%#TermTopBar#%s%%=%s%%*"):format(left, right)
-end
-
-au({ "TermOpen", "BufEnter" }, {
-	group = termbar,
-	pattern = { "term://*" },
-	callback = function(args)
-		set_term_winbar(args.buf)
-	end,
-})
-
-au("BufWinLeave", {
-	group = termbar,
-	pattern = { "term://*" },
-	callback = function()
-		if vim.wo.winbar ~= "" then
-			vim.wo.winbar = ""
 		end
 	end,
 })

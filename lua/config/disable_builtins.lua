@@ -14,7 +14,7 @@ for _, p in ipairs({
 	"spellfile_plugin",
 	"matchit",
 	"matchparen",
-	-- netrw family — comment out if you rely on :Ex or net-based reads
+	-- netrw family — leave disabled unless you rely on it
 	"netrw",
 	"netrwPlugin",
 	"netrwSettings",

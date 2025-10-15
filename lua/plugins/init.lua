@@ -1,15 +1,12 @@
 return {
-	{ import = "plugins.core" },
+	{ import = "plugins.ui" },
 	{ import = "plugins.colorscheme" },
-	{ import = "plugins.fzf" },
+	{ import = "plugins.search" },
 	{ import = "plugins.treesitter" },
 	{ import = "plugins.editing" },
-	{ import = "plugins.completion" },
+	{ import = "plugins.cmp" },
 	{ import = "plugins.lsp" },
-	{ import = "plugins.clipboard" },
 	{ import = "plugins.linting" },
 	{ import = "plugins.formatting" },
 	{ import = "plugins.git" },
-	{ import = "plugins.terminal" },
-	{ import = "plugins.bufferline" },
 }

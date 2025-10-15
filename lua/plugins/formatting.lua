@@ -6,7 +6,7 @@ return {
 			notify_on_error = false,
 			format_on_save = function(bufnr)
 				local max = 300 * 1024
-				local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(bufnr))
+				local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(bufnr))
 				if ok and stats and stats.size > max then
 					return nil
 				end

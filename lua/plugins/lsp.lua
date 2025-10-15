@@ -1,28 +1,26 @@
 return {
 	{ "mason-org/mason.nvim", build = ":MasonUpdate", config = true },
-	{ "mason-org/mason-lspconfig.nvim" },
-	{ "WhoIsSethDaniel/mason-tool-installer.nvim" },
-	{ "b0o/schemastore.nvim", lazy = true },
+	{ "WhoIsSethDaniel/mason-tool-installer.nvim", dependencies = { "mason-org/mason.nvim" } },
+	{ "neovim/nvim-lspconfig" },
 
-	-- LSP
 	{
 		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
-		dependencies = {
-			"mason-org/mason.nvim",
-			"mason-org/mason-lspconfig.nvim",
-			"WhoIsSethDaniel/mason-tool-installer.nvim",
-			"b0o/schemastore.nvim",
-		},
+		dependencies = { "mason-org/mason.nvim", "WhoIsSethDaniel/mason-tool-installer.nvim" },
 		config = function()
-			local mason = require("mason")
-			local mlsp = require("mason-lspconfig")
-			local mti = require("mason-tool-installer")
-
-			mason.setup()
-
-			mti.setup({
+			require("mason").setup()
+			require("mason-tool-installer").setup({
 				ensure_installed = {
+					-- LSP servers
+					"lua-language-server",
+					"basedpyright",
+					"ruff",
+					"vtsls",
+					"gopls",
+					"bash-language-server",
+					"json-lsp",
+					"yaml-language-server",
+					"eslint-lsp",
 					-- formatters
 					"stylua",
 					"biome",
@@ -38,42 +36,36 @@ return {
 				},
 			})
 
+			-- Diagnostics UX
+			local signs = { Error = "", Warn = "", Hint = "", Info = "" }
 			vim.diagnostic.config({
 				signs = {
 					text = {
-						[vim.diagnostic.severity.ERROR] = "",
-						[vim.diagnostic.severity.WARN] = "",
-						[vim.diagnostic.severity.HINT] = "",
-						[vim.diagnostic.severity.INFO] = "",
+						[vim.diagnostic.severity.ERROR] = signs.Error,
+						[vim.diagnostic.severity.WARN] = signs.Warn,
+						[vim.diagnostic.severity.HINT] = signs.Hint,
+						[vim.diagnostic.severity.INFO] = signs.Info,
 					},
 				},
-			})
-
-			vim.diagnostic.config({
 				virtual_text = { spacing = 2, prefix = "●" },
 				float = { border = "rounded" },
 				severity_sort = true,
 				update_in_insert = false,
 			})
-
-			vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
-			vim.lsp.handlers["textDocument/signatureHelp"] =
-				vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
-
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			local ok_blink, blink = pcall(require, "blink.cmp")
 			if ok_blink and blink.get_lsp_capabilities then
 				capabilities = blink.get_lsp_capabilities(capabilities)
 			end
-
+			-- LSP attach: buffer-local keymaps
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 				callback = function(args)
 					local bufnr = args.buf
-					local bmap = function(mode, lhs, rhs, desc)
+					local client = vim.lsp.get_client_by_id(args.data.client_id)
+					local function bmap(mode, lhs, rhs, desc)
 						vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
 					end
-
 					bmap("n", "gd", vim.lsp.buf.definition, "LSP: definition")
 					bmap("n", "gr", vim.lsp.buf.references, "LSP: references")
 					bmap("n", "K", vim.lsp.buf.hover, "LSP: hover")
@@ -83,146 +75,70 @@ return {
 					bmap({ "n", "v" }, "<leader>cf", function()
 						vim.lsp.buf.format({ async = false })
 					end, "LSP: format")
-
-					local ih = vim.lsp.inlay_hint
-					if ih and ih.enable then
-						pcall(ih.enable, true, { bufnr = bufnr }) -- 0.10+
-					end
-					local ih = vim.lsp.inlay_hint
-					if ih then
-						if type(ih.enable) == "function" then
-							pcall(ih.enable, bufnr, true)
-						else
-							pcall(ih, bufnr, true)
-						end
+					if
+						vim.lsp.inlay_hint
+						and client
+						and client.server_capabilities
+						and client.server_capabilities.inlayHintProvider
+					then
+						pcall(vim.lsp.inlay_hint.enable, true, { bufnr = bufnr })
 					end
 				end,
 			})
 
-			local lspconfig = require("lspconfig")
-
-			mlsp.setup({
-				ensure_installed = {
-					"lua_ls",
-					"basedpyright",
-					"ruff",
-					"vtsls",
-					"gopls",
-					"bashls",
-					"jsonls",
-					"eslint",
-				},
-
-				handlers = {
-					function(server)
-						lspconfig[server].setup({
-							capabilities = capabilities,
-						})
-					end,
-
-					["lua_ls"] = function()
-						lspconfig.lua_ls.setup({
-							capabilities = capabilities,
-							settings = {
-								Lua = {
-									diagnostics = { globals = { "vim" } },
-									workspace = { checkThirdParty = false },
-									format = { enable = false }, -- use stylua
-								},
-							},
-						})
-					end,
-
-					["vtsls"] = function()
-						lspconfig.vtsls.setup({
-							capabilities = capabilities,
-							filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
-							settings = {
-								typescript = {
-									inlayHints = {
-										parameterTypes = { enabled = true },
-										functionLikeReturnTypes = { enabled = true },
-									},
-									suggest = { completeFunctionCalls = true },
-								},
-							},
-						})
-					end,
-
-					["gopls"] = function()
-						lspconfig.gopls.setup({
-							capabilities = capabilities,
-							settings = {
-								gopls = {
-									analyses = { unusedparams = true, shadow = true },
-									staticcheck = true,
-									gofumpt = true,
-								},
-							},
-						})
-					end,
-
-					["bashls"] = function()
-						lspconfig.bashls.setup({
-							capabilities = capabilities,
-						})
-					end,
-
-					["jsonls"] = function()
-						local ok_ss, schemastore = pcall(require, "schemastore")
-						lspconfig.jsonls.setup({
-							capabilities = capabilities,
-							settings = {
-								json = {
-									schemas = ok_ss and schemastore.json.schemas() or nil,
-									validate = { enable = true },
-								},
-							},
-						})
-					end,
-
-					["basedpyright"] = function()
-						lspconfig.basedpyright.setup({
-							capabilities = capabilities,
-							settings = {
-								basedpyright = {
-									analysis = {
-										diagnosticMode = "openFilesOnly",
-										-- ["off", "basic", "standard", "strict", "recommended", "all"]
-										typeCheckingMode = "recommended",
-										disableOrganizeImports = true,
-									},
-								},
-							},
-						})
-					end,
-
-					-- Python: ruff (lint + quickfixes)
-					["ruff"] = function()
-						lspconfig.ruff.setup({
-							capabilities = capabilities,
-							init_options = {
-								settings = {
-									-- args = { "--line-length", "100" },
-								},
-							},
-						})
-					end,
-
-					-- Optional: ESLint LSP
-					["eslint"] = function()
-						lspconfig.eslint.setup({
-							capabilities = capabilities,
-							settings = {
-								format = false,
-								workingDirectory = { mode = "auto" },
-								codeActionOnSave = { enable = true, rules = { "all" } },
-								experimental = { useFlatConfig = true },
-							},
-						})
-					end,
+			-- 0.11-native LSP config/enable
+			local lsp = vim.lsp
+			lsp.config("lua_ls", {
+				settings = {
+					Lua = {
+						diagnostics = { globals = { "vim" } },
+						workspace = { checkThirdParty = false },
+						format = { enable = false },
+					},
 				},
 			})
+			lsp.config("basedpyright", {
+				settings = {
+					basedpyright = {
+						analysis = {
+							diagnosticMode = "openFilesOnly",
+							typeCheckingMode = "recommended",
+							disableOrganizeImports = true,
+						},
+					},
+				},
+			})
+			lsp.config("ruff", { init_options = { settings = {} } })
+			lsp.config("vtsls", {
+				filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
+				settings = {
+					typescript = {
+						inlayHints = {
+							parameterTypes = { enabled = true },
+							functionLikeReturnTypes = { enabled = true },
+						},
+						suggest = { completeFunctionCalls = true },
+					},
+				},
+			})
+			lsp.config("gopls", {
+				settings = {
+					gopls = { analyses = { unusedparams = true, shadow = true }, staticcheck = true, gofumpt = true },
+				},
+			})
+			lsp.config("bashls", {})
+			lsp.config("jsonls", {})
+			lsp.config("yamlls", {})
+			lsp.config("eslint", {
+				settings = {
+					format = false,
+					workingDirectory = { mode = "auto" },
+					codeActionOnSave = { enable = true, rules = { "all" } },
+					experimental = { useFlatConfig = true },
+				},
+			})
+
+			lsp.enable({ "lua_ls", "basedpyright", "ruff", "vtsls", "gopls", "bashls", "jsonls", "yamlls", "eslint" })
 		end,
 	},
 }

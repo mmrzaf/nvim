@@ -1,4 +1,7 @@
 local o = vim.opt
+
+vim.g.termfeatures = vim.g.termfeatures or {}
+
 vim.o.laststatus = 3
 vim.o.showmode = false
 vim.o.termguicolors = true
@@ -30,7 +33,6 @@ o.swapfile = false
 o.backup = false
 o.undofile = true
 
-vim.o.cmdheight = 0
+vim.o.cmdheight = 1
 vim.o.showtabline = 2
-
 vim.opt.shortmess:append("c")

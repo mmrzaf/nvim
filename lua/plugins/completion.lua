@@ -1,67 +1,55 @@
 return {
 	{
-		"L3MON4D3/LuaSnip",
-		event = "InsertEnter",
-		build = (function()
-			return "make install_jsregexp"
-		end)(),
-		config = function()
-			require("luasnip.loaders.from_vscode").lazy_load()
-		end,
+		"saghen/blink.cmp",
+		version = "1.*",
 		dependencies = { "rafamadriz/friendly-snippets" },
-	},
-	{
-		"hrsh7th/nvim-cmp",
-		event = "InsertEnter",
-		dependencies = {
-			"saadparwaiz1/cmp_luasnip",
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-buffer",
-		},
-		config = function()
-			local cmp = require("cmp")
-			local luasnip = require("luasnip")
-			cmp.setup({
-				snippet = {
-					expand = function(args)
-						luasnip.lsp_expand(args.body)
-					end,
+		event = { "InsertEnter", "CmdlineEnter" },
+		opts = function()
+			---@type blink.cmp.Config
+			return {
+				appearance = { nerd_font_variant = "mono" },
+				keymap = {
+					preset = "default",
+					["<C-f>"] = { "scroll_documentation_down", "fallback" },
+					["<C-b>"] = { "scroll_documentation_up", "fallback" },
+					["<Tab>"] = { "snippet_forward", "fallback" },
+					["<S-Tab>"] = { "snippet_backward", "fallback" },
 				},
-				mapping = cmp.mapping.preset.insert({
-					["<C-n>"] = cmp.mapping.select_next_item(),
-					["<C-p>"] = cmp.mapping.select_prev_item(),
-					["<C-d>"] = cmp.mapping.scroll_docs(-4),
-					["<C-f>"] = cmp.mapping.scroll_docs(4),
-					["<C-Space>"] = cmp.mapping.complete(),
-					["<CR>"] = cmp.mapping.confirm({ select = false }),
-					["<Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_next_item()
-						elseif luasnip.expand_or_jumpable() then
-							luasnip.expand_or_jump()
-						else
-							fallback()
-						end
-					end, { "i", "s" }),
-					["<S-Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_prev_item()
-						elseif luasnip.jumpable(-1) then
-							luasnip.jump(-1)
-						else
-							fallback()
-						end
-					end, { "i", "s" }),
-				}),
-				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
-					{ name = "luasnip" },
-					{ name = "path" },
-				}, { { name = "buffer" } }),
-				window = { completion = cmp.config.window.bordered(), documentation = cmp.config.window.bordered() },
-				experimental = { ghost_text = true },
-			})
+				completion = {
+					trigger = { show_on_keyword = true },
+					list = { selection = { preselect = true, auto_insert = true } },
+					documentation = { auto_show = true, auto_show_delay_ms = 250 },
+					ghost_text = { enabled = true },
+					accept = { auto_brackets = { enabled = true } },
+					menu = {
+						auto_show = false,
+						draw = { columns = { { "label", "label_description", gap = 1 }, { "kind_icon", "kind" } } },
+					},
+				},
+				signature = { enabled = true, window = { show_documentation = true } },
+				fuzzy = { implementation = "prefer_rust_with_warning" },
+				sources = {
+					default = { "lsp", "path", "snippets", "buffer" },
+					-- per_filetype = { sql = { 'dadbod' } }, -- example of adding per-filetype providers
+				},
+				snippets = { preset = "default" },
+				cmdline = {
+					enabled = true,
+					keymap = { preset = "inherit" },
+					completion = {
+						menu = {
+							auto_show = function()
+								return vim.fn.getcmdtype() == ":"
+							end,
+						},
+					},
+				},
+				term = { enabled = true },
+			}
 		end,
+		config = function(_, opts)
+			require("blink.cmp").setup(opts)
+		end,
+		opts_extend = { "sources.default" },
 	},
 }
