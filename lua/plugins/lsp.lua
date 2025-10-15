@@ -1,11 +1,8 @@
 return {
-	-- Core installers
-	{ "mason-org/mason.nvim",                     build = ":MasonUpdate", config = true },
+	{ "mason-org/mason.nvim", build = ":MasonUpdate", config = true },
 	{ "mason-org/mason-lspconfig.nvim" },
 	{ "WhoIsSethDaniel/mason-tool-installer.nvim" },
-
-	-- Optional: JSON schemastore for better jsonls
-	{ "b0o/schemastore.nvim",                     lazy = true },
+	{ "b0o/schemastore.nvim", lazy = true },
 
 	-- LSP
 	{
@@ -18,9 +15,6 @@ return {
 			"b0o/schemastore.nvim",
 		},
 		config = function()
-			---------------------------------------------------------------------------
-			-- Mason + friends
-			---------------------------------------------------------------------------
 			local mason = require("mason")
 			local mlsp = require("mason-lspconfig")
 			local mti = require("mason-tool-installer")
@@ -44,9 +38,6 @@ return {
 				},
 			})
 
-			---------------------------------------------------------------------------
-			-- UI & diagnostics
-			---------------------------------------------------------------------------
 			vim.diagnostic.config({
 				signs = {
 					text = {
@@ -65,23 +56,16 @@ return {
 				update_in_insert = false,
 			})
 
-			vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover,
-				{ border = "rounded" })
+			vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
 			vim.lsp.handlers["textDocument/signatureHelp"] =
-			    vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
+				vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
 
-			---------------------------------------------------------------------------
-			-- Capabilities (blink.cmp if present)
-			---------------------------------------------------------------------------
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			local ok_blink, blink = pcall(require, "blink.cmp")
 			if ok_blink and blink.get_lsp_capabilities then
 				capabilities = blink.get_lsp_capabilities(capabilities)
 			end
 
-			---------------------------------------------------------------------------
-			-- One place for buffer-local maps & inlay hints (0.11+ API)
-			---------------------------------------------------------------------------
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 				callback = function(args)
@@ -100,7 +84,6 @@ return {
 						vim.lsp.buf.format({ async = false })
 					end, "LSP: format")
 
-					-- Inlay hints: support both 0.11 signature and older fallback
 					local ih = vim.lsp.inlay_hint
 					if ih and ih.enable then
 						pcall(ih.enable, true, { bufnr = bufnr }) -- 0.10+
@@ -108,20 +91,14 @@ return {
 					local ih = vim.lsp.inlay_hint
 					if ih then
 						if type(ih.enable) == "function" then
-							-- 0.11+: enable(bufnr, true)
 							pcall(ih.enable, bufnr, true)
 						else
-							-- Older style: enable(true, { bufnr = bufnr })
 							pcall(ih, bufnr, true)
 						end
 					end
 				end,
 			})
 
-
-			---------------------------------------------------------------------------
-			-- Servers via handlers table inside setup()
-			---------------------------------------------------------------------------
 			local lspconfig = require("lspconfig")
 
 			mlsp.setup({
@@ -137,14 +114,12 @@ return {
 				},
 
 				handlers = {
-					-- Default handler (most servers)
 					function(server)
 						lspconfig[server].setup({
 							capabilities = capabilities,
 						})
 					end,
 
-					-- Lua
 					["lua_ls"] = function()
 						lspconfig.lua_ls.setup({
 							capabilities = capabilities,
@@ -158,7 +133,6 @@ return {
 						})
 					end,
 
-					-- TypeScript/JavaScript via vtsls
 					["vtsls"] = function()
 						lspconfig.vtsls.setup({
 							capabilities = capabilities,
@@ -175,7 +149,6 @@ return {
 						})
 					end,
 
-					-- Go
 					["gopls"] = function()
 						lspconfig.gopls.setup({
 							capabilities = capabilities,
@@ -189,29 +162,25 @@ return {
 						})
 					end,
 
-					-- Bash
 					["bashls"] = function()
 						lspconfig.bashls.setup({
 							capabilities = capabilities,
 						})
 					end,
 
-					-- JSON with schemastore (if available)
 					["jsonls"] = function()
 						local ok_ss, schemastore = pcall(require, "schemastore")
 						lspconfig.jsonls.setup({
 							capabilities = capabilities,
 							settings = {
 								json = {
-									schemas = ok_ss and schemastore.json.schemas() or
-									    nil,
+									schemas = ok_ss and schemastore.json.schemas() or nil,
 									validate = { enable = true },
 								},
 							},
 						})
 					end,
 
-					-- Python: basedpyright (types)
 					["basedpyright"] = function()
 						lspconfig.basedpyright.setup({
 							capabilities = capabilities,
@@ -219,7 +188,9 @@ return {
 								basedpyright = {
 									analysis = {
 										diagnosticMode = "openFilesOnly",
-										typeCheckingMode = "standard",
+										-- ["off", "basic", "standard", "strict", "recommended", "all"]
+										typeCheckingMode = "recommended",
+										disableOrganizeImports = true,
 									},
 								},
 							},
@@ -230,6 +201,11 @@ return {
 					["ruff"] = function()
 						lspconfig.ruff.setup({
 							capabilities = capabilities,
+							init_options = {
+								settings = {
+									-- args = { "--line-length", "100" },
+								},
+							},
 						})
 					end,
 
