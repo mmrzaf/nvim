@@ -4,7 +4,7 @@ return {
 	{ import = "plugins.search" },
 	{ import = "plugins.treesitter" },
 	{ import = "plugins.editing" },
-	{ import = "plugins.cmp" },
+	{ import = "plugins.completion" },
 	{ import = "plugins.lsp" },
 	{ import = "plugins.linting" },
 	{ import = "plugins.formatting" },
