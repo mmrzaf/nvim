@@ -7,7 +7,9 @@ return {
 			local fzf = require("fzf-lua")
 			local config = fzf.config
 			local actions = fzf.actions
-			local function symbols_filter(_) return true end
+			local function symbols_filter(_)
+				return true
+			end
 
 			-- Quickfix
 			config.defaults.keymap.fzf["ctrl-q"] = "select-all+accept"

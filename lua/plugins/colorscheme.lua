@@ -22,13 +22,13 @@ return {
 			flavour = "mocha",
 			transparent_background = false,
 			styles = {
-				comments     = { "italic" },
+				comments = { "italic" },
 				conditionals = {}, -- "none"
-				loops        = {}, -- "none"
-				functions    = { "bold" },
-				keywords     = {}, -- "none"
-				strings      = {}, -- "none"
-				variables    = {}, -- "none"
+				loops = {}, -- "none"
+				functions = { "bold" },
+				keywords = {}, -- "none"
+				strings = {}, -- "none"
+				variables = {}, -- "none"
 			},
 			integrations = {
 				fzf = true,
@@ -39,6 +39,5 @@ return {
 				gitsigns = true,
 			},
 		},
-	}
-
+	},
 }
