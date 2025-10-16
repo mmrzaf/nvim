@@ -1,41 +1,9 @@
 return {
-	{ "mason-org/mason.nvim", build = ":MasonUpdate", config = true },
-	{ "WhoIsSethDaniel/mason-tool-installer.nvim", dependencies = { "mason-org/mason.nvim" } },
-	{ "neovim/nvim-lspconfig" },
-
 	{
 		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = { "mason-org/mason.nvim", "WhoIsSethDaniel/mason-tool-installer.nvim" },
 		config = function()
-			require("mason").setup()
-			require("mason-tool-installer").setup({
-				ensure_installed = {
-					-- LSP servers
-					"lua-language-server",
-					"basedpyright",
-					"ruff",
-					"vtsls",
-					"gopls",
-					"bash-language-server",
-					"json-lsp",
-					"yaml-language-server",
-					"eslint-lsp",
-					-- formatters
-					"stylua",
-					"biome",
-					"prettierd",
-					"jq",
-					"gofumpt",
-					"goimports",
-					-- linters
-					"ruff",
-					"golangci-lint",
-					"eslint_d",
-					"stylelint",
-				},
-			})
-
 			-- Diagnostics UX
 			local signs = { Error = "", Warn = "", Hint = "", Info = "" }
 			vim.diagnostic.config({
