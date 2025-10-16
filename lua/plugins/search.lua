@@ -88,7 +88,7 @@ return {
 						child_prefix = false,
 					},
 					code_actions = { previewer = vim.fn.executable("delta") == 1 and "codeaction_native" or nil },
-				},
+				}
 			}
 		end,
 		config = function(_, opts)
@@ -107,7 +107,7 @@ return {
 			{ "<leader>gc", "<cmd>FzfLua git_commits<CR>", desc = "Commits" },
 			{ "<leader>gs", "<cmd>FzfLua git_status<CR>", desc = "Status" },
 			-- search
-			{ "<leader>:/", "<cmd>FzfLua live_grep<cr>", desc = "Search in project (rg+fzf)" },
+			{ "<leader>/", "<cmd>FzfLua live_grep<cr>", desc = "Search in project (rg+fzf)" },
 			{ '<leader>s"', "<cmd>FzfLua registers<cr>", desc = "Registers" },
 			{ "<leader>sa", "<cmd>FzfLua autocmds<cr>", desc = "Auto Commands" },
 			{ "<leader>sb", "<cmd>FzfLua grep_curbuf<cr>", desc = "Buffer" },
