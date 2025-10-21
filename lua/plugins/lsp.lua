@@ -76,7 +76,7 @@ return {
 					},
 				},
 			})
-			lsp.config("ruff", { init_options = { settings = {} } })
+			lsp.config("ruff", { })
 			lsp.config("vtsls", {
 				filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
 				settings = {
