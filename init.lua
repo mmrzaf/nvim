@@ -5,11 +5,17 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 vim.opt.termguicolors = true
 
-require("dev").setup()
 require("config.disable_builtins")
 require("config.options")
 require("config.keymaps")
 require("config.autocmds")
 require("config.lazy")
+require("dev").setup()
+require("startscreen").setup({
+  title = "  󰧮  Welcome  ",
+  header = { "move the work forward" },
+  border = "rounded",  -- try "single" if your theme overdoes borders
+})
+
 
 vim.cmd.colorscheme("kanagawa")
