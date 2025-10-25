@@ -266,6 +266,7 @@ function M.setup(opts)
 	end, { desc = "Run just with args" })
 	vim.keymap.set("n", "<leader>jl", M.show_logs, { desc = "Show just logs" })
 	vim.keymap.set("n", "<leader>jc", M.clear_logs, { desc = "Clear just logs" })
+	vim.keymap.set("n", "<leader>jk", M.kill_all, { desc = "Kill just process" })
 
 	vim.api.nvim_create_autocmd("VimLeavePre", {
 		callback = function()
