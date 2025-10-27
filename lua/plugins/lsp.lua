@@ -2,7 +2,7 @@ return {
 	{
 		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
-		dependencies = { "mason-org/mason.nvim", "WhoIsSethDaniel/mason-tool-installer.nvim" },
+		dependencies = { "mason-org/mason.nvim", "WhoIsSethDaniel/mason-tool-installer.nvim", "saghen/blink.cmp" },
 		config = function()
 			-- Diagnostics UX
 			local signs = { Error = "", Warn = "", Hint = "", Info = "" }
@@ -76,7 +76,7 @@ return {
 					},
 				},
 			})
-			lsp.config("ruff", { })
+			lsp.config("ruff", {})
 			lsp.config("vtsls", {
 				filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
 				settings = {
