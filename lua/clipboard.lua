@@ -60,40 +60,10 @@ elseif is_win and has("win32yank.exe") then
 	}
 end
 
-local use_osc52 = (not provider) or in_tmux or in_ssh
-
-local function enable_osc52_clipboard()
-	local ok, osc52 = pcall(require, "osc52")
-	if not ok then
-		return
-	end
-	vim.g.clipboard = {
-		name = "osc52",
-		copy = { ["+"] = osc52.copy, ["*"] = osc52.copy },
-		paste = { ["+"] = osc52.paste, ["*"] = osc52.paste },
-	}
-	vim.api.nvim_create_autocmd("TextYankPost", {
-		group = vim.api.nvim_create_augroup("clipboard_osc52", { clear = true }),
-		callback = function()
-			if vim.v.event.operator == "y" then
-				local reg = vim.v.event.regname
-				if reg == "" then
-					reg = '"'
-				end
-				require("osc52").copy_register(reg)
-			end
-		end,
-	})
-end
-
 function M.setup()
-	if provider and not use_osc52 then
+	if provider then
 		vim.g.clipboard = provider
-	elseif use_osc52 then
-		enable_osc52_clipboard()
 	end
-
-	vim.o.clipboard = "unnamedplus"
 end
 
 return M
