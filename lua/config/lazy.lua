@@ -26,7 +26,7 @@ require("lazy").setup({
 				"matchit",
 				"tohtml",
 				"tutor",
-				"shada",
+				--"shada",
 				"spellfile",
 			},
 		},

@@ -88,7 +88,7 @@ return {
 						child_prefix = false,
 					},
 					code_actions = { previewer = vim.fn.executable("delta") == 1 and "codeaction_native" or nil },
-				}
+				},
 			}
 		end,
 		config = function(_, opts)

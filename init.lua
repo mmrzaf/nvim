@@ -12,10 +12,9 @@ require("config.autocmds")
 require("config.lazy")
 require("dev").setup()
 require("startscreen").setup({
-  title = "  󰧮  Welcome  ",
-  header = { "move the work forward" },
-  border = "rounded",  -- try "single" if your theme overdoes borders
+	title = "  󰧮  Welcome  ",
+	header = { "move the work forward" },
+	border = "rounded", -- try "single" if your theme overdoes borders
 })
-
 
 vim.cmd.colorscheme("kanagawa")
