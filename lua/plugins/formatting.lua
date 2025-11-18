@@ -42,6 +42,7 @@ return {
 				rust = { "rustfmt" },
 				c = { "clang_format" },
 				cpp = { "clang_format" },
+				dart = { "dart_format" },
 				sh = { "shfmt" },
 				sql = { "sqlfluff", "pg_format", stop_after_first = true },
 				xml = { "xmlformatter" },
