@@ -105,8 +105,35 @@ return {
 					experimental = { useFlatConfig = true },
 				},
 			})
-
-			lsp.enable({ "lua_ls", "basedpyright", "ruff", "vtsls", "gopls", "bashls", "jsonls", "yamlls", "eslint" })
+			lsp.config("dartls", {
+				cmd = { "dart", "language-server", "--protocol=lsp" },
+				filetypes = { "dart" },
+				init_options = {
+					closingLabels = true,
+					flutterOutline = true,
+					onlyAnalyzeProjectsWithOpenFiles = true,
+					outline = true,
+					suggestFromUnimportedLibraries = true,
+				},
+				settings = {
+					dart = {
+						completeFunctionCalls = true,
+						showTodos = true,
+					},
+				},
+			})
+			lsp.enable({
+				"lua_ls",
+				"basedpyright",
+				"ruff",
+				"vtsls",
+				"gopls",
+				"bashls",
+				"jsonls",
+				"yamlls",
+				"eslint",
+				"dartls",
+			})
 		end,
 	},
 }

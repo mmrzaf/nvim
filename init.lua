@@ -14,7 +14,7 @@ require("dev").setup()
 require("startscreen").setup({
 	title = "  󰧮  Welcome  ",
 	header = { "move the work forward" },
-	border = "rounded", -- try "single" if your theme overdoes borders
+	border = "rounded",
 })
 
 vim.cmd.colorscheme("kanagawa")
