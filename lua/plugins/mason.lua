@@ -20,20 +20,20 @@ return {
 			require("mason-tool-installer").setup({
 				run_on_start = true,
 				start_delay = 150,
-				-- auto_update = false,
 				ensure_installed = {
 					-- LSP servers
 					"lua-language-server",
-					"basedpyright",
+
+					-- Python
+					"ty",
 					"ruff",
+
 					"vtsls",
 					"gopls",
 					"bash-language-server",
 					"json-lsp",
 					"yaml-language-server",
 					"eslint-lsp",
-					-- "jdtls",
-					-- "kotlin-language-server",
 					"rust-analyzer",
 					"clangd",
 					"sqlls",
@@ -48,7 +48,6 @@ return {
 					"google-java-format",
 					"ktlint",
 					"ktfmt",
-					-- "rustfmt", deprecated
 					"clang-format",
 					"shfmt",
 					"sqlfluff",
@@ -56,7 +55,6 @@ return {
 					"taplo",
 
 					-- linters / extras
-					"ruff",
 					"golangci-lint",
 					"eslint_d",
 					"stylelint",

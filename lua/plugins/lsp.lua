@@ -20,29 +20,46 @@ return {
 				severity_sort = true,
 				update_in_insert = false,
 			})
+
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			local ok_blink, blink = pcall(require, "blink.cmp")
 			if ok_blink and blink.get_lsp_capabilities then
 				capabilities = blink.get_lsp_capabilities(capabilities)
 			end
+
 			-- LSP attach: buffer-local keymaps
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 				callback = function(args)
 					local bufnr = args.buf
 					local client = vim.lsp.get_client_by_id(args.data.client_id)
+
 					local function bmap(mode, lhs, rhs, desc)
 						vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
 					end
+
 					bmap("n", "gd", vim.lsp.buf.definition, "LSP: definition")
 					bmap("n", "gr", vim.lsp.buf.references, "LSP: references")
 					bmap("n", "K", vim.lsp.buf.hover, "LSP: hover")
 					bmap("n", "gi", vim.lsp.buf.implementation, "LSP: implementation")
 					bmap("n", "<leader>rn", vim.lsp.buf.rename, "LSP: rename")
 					bmap("n", "<leader>ca", vim.lsp.buf.code_action, "LSP: code action")
+
+					-- Prefer Conform for formatting everywhere (including Python via Ruff CLI)
 					bmap({ "n", "v" }, "<leader>cf", function()
-						vim.lsp.buf.format({ async = false })
-					end, "LSP: format")
+						local ok_conform, conform = pcall(require, "conform")
+						if ok_conform then
+							conform.format({ async = false, lsp_fallback = true })
+						else
+							vim.lsp.buf.format({ async = false })
+						end
+					end, "Format (Conform/LSP fallback)")
+
+					-- Make sure Ruff doesn't steal hover from Ty when both are attached
+					if client and client.name == "ruff" and client.server_capabilities then
+						client.server_capabilities.hoverProvider = false
+					end
+
 					if
 						vim.lsp.inlay_hint
 						and client
@@ -56,7 +73,9 @@ return {
 
 			-- 0.11-native LSP config/enable
 			local lsp = vim.lsp
+
 			lsp.config("lua_ls", {
+				capabilities = capabilities,
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
@@ -65,19 +84,30 @@ return {
 					},
 				},
 			})
-			lsp.config("basedpyright", {
+
+			-- Python: Ty + Ruff only
+			lsp.config("ty", {
+				capabilities = capabilities,
 				settings = {
-					basedpyright = {
-						analysis = {
-							diagnosticMode = "openFilesOnly",
-							typeCheckingMode = "recommended",
-							disableOrganizeImports = true,
-						},
+					ty = {
+						diagnosticMode = "openFilesOnly",
+						-- If you ever decide Ty should ONLY typecheck and Ruff/other LS should do language services:
+						-- disableLanguageServices = true,
 					},
 				},
 			})
-			lsp.config("ruff", {})
+
+			lsp.config("ruff", {
+				capabilities = capabilities,
+				init_options = {
+					settings = {
+						-- put Ruff LS settings here if needed
+					},
+				},
+			})
+
 			lsp.config("vtsls", {
+				capabilities = capabilities,
 				filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
 				settings = {
 					typescript = {
@@ -89,15 +119,20 @@ return {
 					},
 				},
 			})
+
 			lsp.config("gopls", {
+				capabilities = capabilities,
 				settings = {
 					gopls = { analyses = { unusedparams = true, shadow = true }, staticcheck = true, gofumpt = true },
 				},
 			})
-			lsp.config("bashls", {})
-			lsp.config("jsonls", {})
-			lsp.config("yamlls", {})
+
+			lsp.config("bashls", { capabilities = capabilities })
+			lsp.config("jsonls", { capabilities = capabilities })
+			lsp.config("yamlls", { capabilities = capabilities })
+
 			lsp.config("eslint", {
+				capabilities = capabilities,
 				settings = {
 					format = false,
 					workingDirectory = { mode = "auto" },
@@ -105,7 +140,9 @@ return {
 					experimental = { useFlatConfig = true },
 				},
 			})
+
 			lsp.config("dartls", {
+				capabilities = capabilities,
 				cmd = { "dart", "language-server", "--protocol=lsp" },
 				filetypes = { "dart" },
 				init_options = {
@@ -122,10 +159,14 @@ return {
 					},
 				},
 			})
+
 			lsp.enable({
 				"lua_ls",
-				"basedpyright",
+
+				-- Python
+				"ty",
 				"ruff",
+
 				"vtsls",
 				"gopls",
 				"bashls",
