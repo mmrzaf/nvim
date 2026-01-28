@@ -56,7 +56,12 @@ local function get_log_buf()
 
 	-- write header while modifiable is true, then lock it
 	vim.bo[buf].modifiable = true
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "just logs:", "──────────", "" })
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+		"just logs:",
+
+		"────────────────────────────────────────────────────────────────────────────────────",
+		"",
+	})
 	vim.bo[buf].modifiable = false
 
 	-- optional highlight links (safe even if groups don’t exist)
@@ -169,8 +174,8 @@ function M.run_just(args)
 	ensure_log_win()
 	append_to_log({
 		"",
-		"▶ Running: just" .. (args and #args > 0 and (" " .. table.concat(args, " ")) or ""),
-		"────────────────────",
+		"Running: just" .. (args and #args > 0 and (" " .. table.concat(args, " ")) or ""),
+		"────────────────────────────────────────────────────────────────────────────────────",
 	})
 
 	local cmd = { "just" }
@@ -205,10 +210,13 @@ function M.run_just(args)
 		end,
 
 		on_exit = function(_, code, _)
-			M.procs[job_id] = nil
+			if M.procs[job_id] then
+				M.procs[job_id] = nil
+			end
+
 			vim.schedule(function()
 				append_to_log({
-					"────────────────────",
+					"────────────────────────────────────────────────────────────────────────────────────",
 					"just exited with code: " .. tostring(code),
 					"",
 				})

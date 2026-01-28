@@ -17,4 +17,4 @@ require("startscreen").setup({
 	border = "rounded",
 })
 
-vim.cmd.colorscheme("kanagawa")
+vim.cmd.colorscheme("catppuccin")

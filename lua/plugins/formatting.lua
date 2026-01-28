@@ -35,7 +35,9 @@ return {
 				css = { "biome", "prettierd", "prettier", stop_after_first = true },
 				json = { "jq", "biome", "prettierd", "prettier", stop_after_first = true },
 				yaml = { "prettierd", "prettier", stop_after_first = true },
-				python = { "ruff_fix", "ruff_format", "black", stop_after_first = true },
+
+				python = { "ruff_fix", "ruff_organize_imports", "ruff_format" },
+
 				markdown = { "prettierd", "prettier", stop_after_first = true },
 				java = { "google-java-format", stop_after_first = true },
 				kotlin = { "ktfmt", stop_after_first = true },
