@@ -1,0 +1,114 @@
+local M = {}
+
+M.large_file = {
+  bytes = 1024 * 1024,
+  lines = 20000,
+}
+
+M.treesitter = {
+  parsers = {
+    "bash",
+    "css",
+    "go",
+    "html",
+    "javascript",
+    "json",
+    "lua",
+    "markdown",
+    "markdown_inline",
+    "python",
+    "rust",
+    "toml",
+    "tsx",
+    "typescript",
+    "vim",
+    "vimdoc",
+    "yaml",
+  },
+  filetypes = {
+    "bash",
+    "css",
+    "go",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "json",
+    "lua",
+    "markdown",
+    "python",
+    "rust",
+    "sh",
+    "toml",
+    "typescript",
+    "typescriptreact",
+    "vim",
+    "yaml",
+  },
+}
+
+M.lsp = {
+  servers = {
+    "bashls",
+    "cssls",
+    "eslint",
+    "gopls",
+    "html",
+    "jsonls",
+    "lua_ls",
+    "marksman",
+    "ruff",
+    "ty",
+    "vtsls",
+    "yamlls",
+  },
+  executables = {
+    bashls = "bash-language-server",
+    cssls = "vscode-css-language-server",
+    eslint = "vscode-eslint-language-server",
+    gopls = "gopls",
+    html = "vscode-html-language-server",
+    jsonls = "vscode-json-language-server",
+    lua_ls = "lua-language-server",
+    marksman = "marksman",
+    ruff = "ruff",
+    ty = "ty",
+    vtsls = "vtsls",
+    yamlls = "yaml-language-server",
+  },
+}
+
+M.formatting = {
+  autoformat_filetypes = {
+    bash = true,
+    css = true,
+    go = true,
+    html = true,
+    javascript = true,
+    javascriptreact = true,
+    json = true,
+    lua = true,
+    python = true,
+    sh = true,
+    typescript = true,
+    typescriptreact = true,
+  },
+  executables = {
+    "stylua",
+    "ruff",
+    "goimports",
+    "gofumpt",
+    "prettierd",
+    "prettier",
+    "shfmt",
+    "taplo",
+    "rustfmt",
+    "clang-format",
+  },
+}
+
+M.dev = {
+  log_height = 12,
+  max_log_lines = 5000,
+}
+
+return M
