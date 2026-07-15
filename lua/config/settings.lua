@@ -82,28 +82,6 @@ M.lsp = {
 }
 
 M.formatting = {
-  autoformat_filetypes = {
-    bash = true,
-    c = true,
-    cpp = true,
-    css = true,
-    go = true,
-    html = true,
-    javascript = true,
-    javascriptreact = true,
-    json = true,
-    json5 = true,
-    jsonc = true,
-    lua = true,
-    markdown = true,
-    python = true,
-    rust = true,
-    sh = true,
-    toml = true,
-    typescript = true,
-    typescriptreact = true,
-    yaml = true,
-  },
   executables = {
     "stylua",
     "ruff",

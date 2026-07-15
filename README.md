@@ -102,16 +102,9 @@ No AI completion, AI chat, agent integration, DAP, test framework, database clie
 - `<leader>e`: diagnostic float
 - `<leader>dv`: toggle diagnostic virtual text
 - `<leader>uh`: toggle inlay hints
-- `<leader>cf`: format buffer or selection
+- `<Space>f`: manually format the buffer or selected range
 
-Autoformat-on-save is enabled for Lua, Python, Go, JavaScript/TypeScript, HTML, CSS, JSON/JSONC/JSON5, YAML, Markdown, TOML, Rust, Bash/sh, and C/C++. Control it with:
-
-```vim
-:FormatDisable
-:FormatDisable!
-:FormatEnable
-:FormatEnable!
-```
+Format-on-save is disabled. Formatting runs only when requested with `<Space>f` or `:Format`. Supported filetypes include Lua, Python, Go, JavaScript/TypeScript, HTML, CSS, JSON/JSONC/JSON5, YAML, Markdown, TOML, Rust, Bash/sh, and C/C++.
 
 ## Completion
 
