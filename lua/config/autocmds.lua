@@ -56,7 +56,19 @@ vim.api.nvim_create_autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
 
 vim.api.nvim_create_autocmd("FileType", {
   group = group,
-  pattern = { "lua", "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "yaml", "html", "css" },
+  pattern = {
+    "lua",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "json",
+    "json5",
+    "jsonc",
+    "yaml",
+    "html",
+    "css",
+  },
   callback = function()
     vim.bo.shiftwidth = 2
     vim.bo.tabstop = 2

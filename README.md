@@ -104,7 +104,7 @@ No AI completion, AI chat, agent integration, DAP, test framework, database clie
 - `<leader>uh`: toggle inlay hints
 - `<leader>cf`: format buffer or selection
 
-Autoformat is deliberately limited to tested filetypes. Control it with:
+Autoformat-on-save is enabled for Lua, Python, Go, JavaScript/TypeScript, HTML, CSS, JSON/JSONC/JSON5, YAML, Markdown, TOML, Rust, Bash/sh, and C/C++. Control it with:
 
 ```vim
 :FormatDisable
