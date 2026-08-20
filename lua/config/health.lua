@@ -1,15 +1,19 @@
 local settings = require("config.settings")
 local M = {}
 
-local function executable(name, required)
+local function executable(name, severity)
   if vim.fn.executable(name) == 1 then
     vim.health.ok(name .. " found")
     return true
   end
-  if required then
-    vim.health.error(name .. " missing")
+
+  local message = name .. " missing"
+  if severity == "error" then
+    vim.health.error(message)
+  elseif severity == "warn" then
+    vim.health.warn(message)
   else
-    vim.health.warn(name .. " missing")
+    vim.health.info(message .. " (optional in the current environment)")
   end
   return false
 end
@@ -44,8 +48,8 @@ local function parse_version(text)
   return { tonumber(major), tonumber(minor), tonumber(patch) }
 end
 
-local function check_versioned_executable(name, command, minimum, required)
-  if not executable(name, required) then
+local function check_versioned_executable(name, command, minimum, severity)
+  if not executable(name, severity) then
     return
   end
 
@@ -58,22 +62,32 @@ local function check_versioned_executable(name, command, minimum, required)
 
   if version_at_least(parsed, minimum) then
     vim.health.ok(output)
+    return
+  end
+
+  local wanted = table.concat(minimum, ".")
+  local report = (output or name) .. " is too old; " .. wanted .. "+ required"
+  if severity == "error" then
+    vim.health.error(report)
   else
-    local wanted = table.concat(minimum, ".")
-    local report = (output or name) .. " is too old; " .. wanted .. "+ required"
-    if required then
-      vim.health.error(report)
-    else
-      vim.health.warn(report)
-    end
+    vim.health.warn(report)
   end
 end
 
-local function check_treesitter_cli()
+local function check_treesitter()
   vim.health.start("Treesitter")
-  check_versioned_executable("tree-sitter", { "tree-sitter", "--version" }, { 0, 26, 1 }, true)
-end
+  check_versioned_executable("tree-sitter", { "tree-sitter", "--version" }, { 0, 26, 1 }, "error")
 
+  for _, parser in ipairs(settings.treesitter.parsers) do
+    local call_ok, loaded, err = pcall(vim.treesitter.language.add, parser)
+    if call_ok and loaded then
+      vim.health.ok(parser .. " parser available")
+    else
+      local detail = call_ok and err or loaded
+      vim.health.warn(parser .. " parser unavailable" .. (detail and ": " .. tostring(detail) or ""))
+    end
+  end
+end
 
 function M.check()
   vim.health.start("Neovim")
@@ -96,17 +110,18 @@ function M.check()
   if vim.uv.fs_stat(lockfile) then
     vim.health.ok("Plugin lockfile found")
   else
-    vim.health.warn("lazy-lock.json is missing; launch once, then commit the generated lockfile")
+    vim.health.warn("lazy-lock.json is missing; restore or regenerate it intentionally")
   end
 
   vim.health.start("Core executables")
-  for _, name in ipairs({ "git", "rg", "fd", "curl", "tar" }) do
-    executable(name, true)
+  for _, name in ipairs({ "git", "rg", "curl", "tar" }) do
+    executable(name, "error")
   end
-  check_versioned_executable("fzf", { "fzf", "--version" }, { 0, 36, 0 }, true)
-  executable("unzip", false)
-  executable("just", false)
-  executable("lazygit", false)
+  check_versioned_executable("fzf", { "fzf", "--version" }, { 0, 37, 0 }, "error")
+  executable("fd", "info")
+  executable("unzip", "info")
+  executable("just", "info")
+  executable("lazygit", "info")
 
   local compiler = vim.fn.executable("cc") == 1 or vim.fn.executable("gcc") == 1 or vim.fn.executable("clang") == 1
   if compiler then
@@ -115,35 +130,101 @@ function M.check()
     vim.health.error("No C compiler found")
   end
 
-  check_treesitter_cli()
+  check_treesitter()
 
-  vim.health.start("LSP servers")
-  for _, server in ipairs(settings.lsp.servers) do
-    local binary = settings.lsp.executables[server]
-    if binary and vim.fn.executable(binary) == 1 then
-      vim.health.ok(server .. " (" .. binary .. ")")
-    else
-      vim.health.warn(server .. " missing" .. (binary and " (" .. binary .. ")" or ""))
+  vim.health.start("TypeScript editor tooling")
+  executable("node", "warn")
+  executable("npm", "warn")
+
+  vim.health.start("Pinned Mason editor wrappers")
+  local registry_ok, registry = pcall(require, "mason-registry")
+  if not registry_ok then
+    vim.health.warn("mason-registry is unavailable; pinned wrapper versions could not be checked")
+  else
+    for _, spec in ipairs(settings.mason.ensure_installed or {}) do
+      if not registry.is_installed(spec.name) then
+        vim.health.warn(string.format("%s@%s is not installed; Mason will install it when Node/npm are available", spec.name, spec.version))
+      else
+        local package_ok, package = pcall(registry.get_package, spec.name)
+        local installed = package_ok and package:get_installed_version() or nil
+        if installed == spec.version then
+          vim.health.ok(string.format("%s@%s", spec.name, installed))
+        elseif installed then
+          vim.health.warn(string.format("%s is %s; config pins %s (run :ConfigSyncMason)", spec.name, installed, spec.version))
+        else
+          vim.health.warn(spec.name .. " is installed, but its version could not be determined")
+        end
+      end
     end
   end
 
-  vim.health.start("Formatters")
+  vim.health.start("LSP servers in current environment")
+  local mason_managed = {
+    eslint = true,
+    vtsls = true,
+  }
+  for _, server in ipairs(settings.lsp.servers) do
+    local binary = settings.lsp.executables[server]
+    if not binary then
+      vim.health.info(server .. " has no executable probe configured")
+    elseif vim.fn.executable(binary) == 1 then
+      vim.health.ok(server .. " (" .. binary .. ")")
+    elseif mason_managed[server] then
+      vim.health.warn(server .. " unavailable (" .. binary .. "); Mason is configured to install this editor-side wrapper")
+    else
+      vim.health.info(server .. " unavailable (" .. binary .. "); this is valid outside projects/environments that provide it")
+    end
+  end
+
+  vim.health.start("Formatters in current environment")
   for _, name in ipairs(settings.formatting.executables) do
-    executable(name, false)
+    if vim.fn.executable(name) == 1 then
+      vim.health.ok(name .. " found")
+    else
+      vim.health.info(name .. " unavailable; Conform will use it only when the current project/environment provides it")
+    end
+  end
+
+  vim.health.start("Optional lint helpers")
+  if vim.fn.executable("shellcheck") == 1 then
+    vim.health.ok("shellcheck found; bash-language-server can use it for shell diagnostics")
+  else
+    vim.health.info("shellcheck unavailable; Bash LSP still works, but shell lint diagnostics are reduced")
+  end
+  if vim.fn.executable("cargo-clippy") == 1 then
+    vim.health.ok("cargo-clippy found; rust-analyzer uses Clippy for check diagnostics")
+  else
+    vim.health.info("cargo-clippy unavailable; rust-analyzer falls back to cargo check diagnostics")
   end
 
   vim.health.start("Clipboard")
   if type(vim.g.clipboard) == "table" then
     vim.health.ok("Custom clipboard bridge active: " .. (vim.g.clipboard.name or "unnamed"))
   else
-    local providers = {
-      { "wl-copy", "Wayland" },
-      { "xclip", "X11 (xclip)" },
-      { "xsel", "X11 (xsel)" },
-      { "pbcopy", "macOS" },
-      { "win32yank.exe", "Windows" },
-      { "clip.exe", "WSL/Windows" },
-    }
+    local providers
+    if vim.env.WAYLAND_DISPLAY and vim.env.WAYLAND_DISPLAY ~= "" then
+      providers = {
+        { "wl-copy", "Wayland" },
+        { "xclip", "X11 fallback" },
+        { "xsel", "X11 fallback" },
+      }
+    elseif vim.env.DISPLAY and vim.env.DISPLAY ~= "" then
+      providers = {
+        { "xclip", "X11" },
+        { "xsel", "X11" },
+        { "wl-copy", "Wayland fallback" },
+      }
+    else
+      providers = {
+        { "wl-copy", "Wayland" },
+        { "xclip", "X11" },
+        { "xsel", "X11" },
+        { "pbcopy", "macOS" },
+        { "win32yank.exe", "Windows" },
+        { "clip.exe", "WSL/Windows" },
+      }
+    end
+
     local found
     for _, provider in ipairs(providers) do
       if vim.fn.executable(provider[1]) == 1 then
@@ -151,12 +232,13 @@ function M.check()
         break
       end
     end
+
     if found then
       vim.health.ok(string.format("Clipboard provider candidate found: %s (%s)", found[1], found[2]))
     elseif vim.env.SSH_TTY or vim.env.SSH_CONNECTION then
       vim.health.info("No local clipboard executable; Neovim may use OSC 52 over SSH")
     else
-      vim.health.warn("No clipboard provider detected; run :checkhealth provider")
+      vim.health.warn("No clipboard provider detected; install wl-clipboard for Wayland or xclip/xsel for X11")
     end
   end
 end
