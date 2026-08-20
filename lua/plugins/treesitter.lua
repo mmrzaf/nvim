@@ -10,6 +10,7 @@ return {
     config = function()
       require("nvim-treesitter").setup()
 
+      local warned = {}
       local group = vim.api.nvim_create_augroup("ConfigTreesitter", { clear = true })
       vim.api.nvim_create_autocmd("FileType", {
         group = group,
@@ -18,7 +19,18 @@ return {
           if large_file.is(args.buf) or large_file.check_lines(args.buf) then
             return
           end
-          pcall(vim.treesitter.start, args.buf)
+
+          local ok, err = pcall(vim.treesitter.start, args.buf)
+          local filetype = vim.bo[args.buf].filetype
+          if not ok and not warned[filetype] then
+            warned[filetype] = true
+            vim.schedule(function()
+              vim.notify(
+                string.format("Treesitter failed for %s: %s", filetype, tostring(err)),
+                vim.log.levels.WARN
+              )
+            end)
+          end
         end,
       })
 

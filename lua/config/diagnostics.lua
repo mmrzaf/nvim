@@ -34,4 +34,16 @@ function M.toggle_virtual_text()
   })
 end
 
+function M.toggle_virtual_lines()
+  local enabled = vim.diagnostic.config().virtual_lines
+  vim.diagnostic.config({
+    virtual_lines = enabled and false or { current_line = true },
+  })
+end
+
+function M.toggle_underline()
+  local enabled = vim.diagnostic.config().underline ~= false
+  vim.diagnostic.config({ underline = not enabled })
+end
+
 return M

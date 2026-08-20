@@ -8,10 +8,13 @@ M.large_file = {
 M.treesitter = {
   parsers = {
     "bash",
+    "c",
+    "cpp",
     "css",
     "go",
     "html",
     "javascript",
+    "jsdoc",
     "json",
     "json5",
     "jsonc",
@@ -29,6 +32,8 @@ M.treesitter = {
   },
   filetypes = {
     "bash",
+    "c",
+    "cpp",
     "css",
     "go",
     "html",
@@ -50,9 +55,25 @@ M.treesitter = {
   },
 }
 
+M.typescript = {
+  -- Stronger cross-file diagnostics. Disable on extremely large monorepos if
+  -- the TypeScript server becomes too expensive.
+  project_diagnostics = true,
+}
+
+M.mason = {
+  -- Stable editor-side wrappers. Project-specific TypeScript, ESLint, and
+  -- Prettier versions remain project/environment-owned.
+  ensure_installed = {
+    { name = "vtsls", version = "0.3.0" },
+    { name = "eslint-lsp", version = "4.10.0" },
+  },
+}
+
 M.lsp = {
   servers = {
     "bashls",
+    "clangd",
     "cssls",
     "eslint",
     "gopls",
@@ -61,12 +82,14 @@ M.lsp = {
     "lua_ls",
     "marksman",
     "ruff",
+    "rust_analyzer",
     "ty",
     "vtsls",
     "yamlls",
   },
   executables = {
     bashls = "bash-language-server",
+    clangd = "clangd",
     cssls = "vscode-css-language-server",
     eslint = "vscode-eslint-language-server",
     gopls = "gopls",
@@ -75,6 +98,7 @@ M.lsp = {
     lua_ls = "lua-language-server",
     marksman = "marksman",
     ruff = "ruff",
+    rust_analyzer = "rust-analyzer",
     ty = "ty",
     vtsls = "vtsls",
     yamlls = "yaml-language-server",
@@ -87,7 +111,6 @@ M.formatting = {
     "ruff",
     "goimports",
     "gofumpt",
-    "prettierd",
     "prettier",
     "shfmt",
     "taplo",

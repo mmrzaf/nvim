@@ -17,6 +17,7 @@ return {
         ["<S-Tab>"] = { "snippet_backward", "fallback" },
         ["<C-f>"] = { "scroll_documentation_down", "fallback" },
         ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-k>"] = { "show_signature", "hide_signature", "fallback" },
       },
       completion = {
         accept = {
@@ -50,7 +51,11 @@ return {
         implementation = "prefer_rust_with_warning",
       },
       signature = {
-        enabled = false,
+        enabled = true,
+        window = {
+          border = "rounded",
+          show_documentation = false,
+        },
       },
       cmdline = {
         enabled = false,
