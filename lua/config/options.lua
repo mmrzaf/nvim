@@ -13,16 +13,20 @@ o.hidden = true
 o.splitbelow = true
 o.splitright = true
 o.equalalways = false
+o.splitkeep = "screen"
 
 o.ignorecase = true
 o.smartcase = true
 o.incsearch = true
 o.hlsearch = true
+o.inccommand = "split"
 
 o.scrolloff = 6
 o.sidescrolloff = 8
+o.smoothscroll = true
 o.wrap = false
 o.linebreak = true
+o.breakindent = true
 
 o.list = true
 o.fillchars:append({ eob = " " })
@@ -65,5 +69,8 @@ o.grepformat = "%f:%l:%c:%m"
 o.wildmode = { "longest:full", "full" }
 o.wildignorecase = true
 o.autoread = true
+o.jumpoptions = "view"
+o.diffopt:append("linematch:60")
 
-o.statusline = " %f %m%r%=%y  %l:%c  %p%% "
+-- Keep Neovim 0.12's builtin statusline instead of replacing it with a static
+-- one; it now includes diagnostics, progress, and terminal exit status.
