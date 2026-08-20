@@ -16,21 +16,16 @@ local header = {
 }
 
 local function strip_ansi(text)
+  text = text:gsub("\27%].-\27\\", "")
+  text = text:gsub("\27%].-\7", "")
   text = text:gsub("\27%[[0-9;:%?]*[ -/]*[@-~]", "")
-  text = text:gsub("\27%].-[\7\27\\]", "")
   return text:gsub("\r", "")
 end
 
-local function sanitize(lines, prefix, drop_trailing_sentinel)
-  lines = lines or {}
+local function sanitize(lines, prefix)
   local output = {}
-  local last = #lines
-  if drop_trailing_sentinel and last > 0 and lines[last] == "" then
-    last = last - 1
-  end
-
-  for index = 1, last do
-    local line = strip_ansi(lines[index] or "")
+  for _, raw in ipairs(lines or {}) do
+    local line = strip_ansi(raw or "")
     output[#output + 1] = line == "" and "" or (prefix or "") .. line
   end
   return output
@@ -112,18 +107,21 @@ end
 
 local function trim_log(bufnr)
   local count = vim.api.nvim_buf_line_count(bufnr)
-  local excess = count - settings.max_log_lines
+  local data_count = math.max(0, count - #header)
+  local excess = data_count - settings.max_log_lines
   if excess <= 0 then
     return
   end
+
   local first_data_line = #header
+  vim.api.nvim_buf_clear_namespace(bufnr, M.namespace, first_data_line, first_data_line + excess)
   with_modifiable(bufnr, function()
     vim.api.nvim_buf_set_lines(bufnr, first_data_line, first_data_line + excess, false, {})
   end)
 end
 
-local function append(lines, prefix, drop_trailing_sentinel)
-  lines = sanitize(lines, prefix, drop_trailing_sentinel)
+local function append(lines, prefix)
+  lines = sanitize(lines, prefix)
   if #lines == 0 then
     return
   end
@@ -148,10 +146,51 @@ local function append(lines, prefix, drop_trailing_sentinel)
   end
 
   trim_log(bufnr)
-  if M.log_win and vim.api.nvim_win_is_valid(M.log_win) then
+  if M.log_win
+    and vim.api.nvim_win_is_valid(M.log_win)
+    and vim.api.nvim_win_get_buf(M.log_win) == bufnr
+  then
     local line_count = vim.api.nvim_buf_line_count(bufnr)
     pcall(vim.api.nvim_win_set_cursor, M.log_win, { line_count, 0 })
   end
+end
+
+local function new_stream(prefix)
+  return {
+    prefix = prefix,
+    tail = "",
+  }
+end
+
+local function consume_stream(stream, data)
+  if not data or #data == 0 then
+    return
+  end
+
+  local first = stream.tail .. (data[1] or "")
+  if #data == 1 then
+    stream.tail = first
+    return
+  end
+
+  local complete = { first }
+  for index = 2, #data - 1 do
+    complete[#complete + 1] = data[index] or ""
+  end
+  stream.tail = data[#data] or ""
+
+  vim.schedule(function()
+    append(complete, stream.prefix)
+  end)
+end
+
+local function flush_stream(stream)
+  if stream.tail == "" then
+    return
+  end
+  local tail = stream.tail
+  stream.tail = ""
+  append({ tail }, stream.prefix)
 end
 
 local function just_context()
@@ -191,24 +230,26 @@ function M.run(args)
     string.rep("─", 80),
   })
 
-  local job_id
-  job_id = vim.fn.jobstart(command, {
+  local stdout = new_stream(nil)
+  local stderr = new_stream("[stderr] ")
+  local job_id = vim.fn.jobstart(command, {
     cwd = cwd,
     stdout_buffered = false,
     stderr_buffered = false,
     on_stdout = function(_, data)
-      vim.schedule(function()
-        append(data, nil, true)
-      end)
+      consume_stream(stdout, data)
     end,
     on_stderr = function(_, data)
-      vim.schedule(function()
-        append(data, "[stderr] ", true)
-      end)
+      consume_stream(stderr, data)
     end,
-    on_exit = function(_, code)
-      M.job_id = nil
+    on_exit = function(exited_id, code)
+      if M.job_id == exited_id then
+        M.job_id = nil
+      end
+
       vim.schedule(function()
+        flush_stream(stdout)
+        flush_stream(stderr)
         append({
           string.rep("─", 80),
           "just exited with code " .. code,
@@ -281,10 +322,10 @@ end
 
 function M.clear_logs()
   local bufnr = get_log_buf()
+  vim.api.nvim_buf_clear_namespace(bufnr, M.namespace, 0, -1)
   with_modifiable(bufnr, function()
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, header)
   end)
-  vim.api.nvim_buf_clear_namespace(bufnr, M.namespace, 0, -1)
 end
 
 function M.stop()
@@ -292,16 +333,20 @@ function M.stop()
     vim.notify("No just task is running", vim.log.levels.INFO)
     return
   end
-  pcall(vim.fn.jobstop, M.job_id)
-  M.job_id = nil
+
+  local stopped = vim.fn.jobstop(M.job_id)
+  if stopped == 0 then
+    vim.notify("Unable to stop just task", vim.log.levels.WARN)
+  end
 end
 
 function M.setup()
-  vim.keymap.set("n", "<leader>jr", M.choose, { desc = "Choose and run just recipe" })
-  vim.keymap.set("n", "<leader>ja", M.prompt, { desc = "Run just with arguments" })
-  vim.keymap.set("n", "<leader>jl", M.show_logs, { desc = "Show just logs" })
-  vim.keymap.set("n", "<leader>jc", M.clear_logs, { desc = "Clear just logs" })
-  vim.keymap.set("n", "<leader>jk", M.stop, { desc = "Stop just task" })
+  local map = require("config.keymaps").map
+  map("n", "<leader>jr", M.choose, "Choose and run just recipe")
+  map("n", "<leader>ja", M.prompt, "Run just with arguments")
+  map("n", "<leader>jl", M.show_logs, "Show just logs")
+  map("n", "<leader>jc", M.clear_logs, "Clear just logs")
+  map("n", "<leader>jk", M.stop, "Stop just task")
 
   vim.api.nvim_create_user_command("JustChoose", M.choose, { desc = "Choose and run just recipe", force = true })
   vim.api.nvim_create_user_command("JustRun", M.prompt, { desc = "Run just with arguments", force = true })
