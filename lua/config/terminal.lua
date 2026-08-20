@@ -1,27 +1,43 @@
+local root = require("util.root")
 local M = {}
 
-local terminals = {}
+local terminals = {
+  shell = {},
+  git = {},
+}
+local Terminal
 
-local function terminal_maps(bufnr)
-  local opts = { buffer = bufnr, silent = true }
-  vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], vim.tbl_extend("force", opts, { desc = "Leave terminal mode" }))
-  vim.keymap.set("t", "<C-h>", [[<Cmd>wincmd h<CR>]], vim.tbl_extend("force", opts, { desc = "Window left" }))
-  vim.keymap.set("t", "<C-j>", [[<Cmd>wincmd j<CR>]], vim.tbl_extend("force", opts, { desc = "Window down" }))
-  vim.keymap.set("t", "<C-k>", [[<Cmd>wincmd k<CR>]], vim.tbl_extend("force", opts, { desc = "Window up" }))
-  vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], vim.tbl_extend("force", opts, { desc = "Window right" }))
+local function terminal_maps(bufnr, term)
+  local keymaps = require("config.keymaps")
+  keymaps.bufmap(bufnr, "t", "<Esc><Esc>", [[<C-\><C-n>]], "Leave terminal mode")
+  keymaps.bufmap(bufnr, "t", "<C-h>", [[<Cmd>wincmd h<CR>]], "Window left")
+  keymaps.bufmap(bufnr, "t", "<C-j>", [[<Cmd>wincmd j<CR>]], "Window down")
+  keymaps.bufmap(bufnr, "t", "<C-k>", [[<Cmd>wincmd k<CR>]], "Window up")
+  keymaps.bufmap(bufnr, "t", "<C-l>", [[<Cmd>wincmd l<CR>]], "Window right")
+  keymaps.bufmap(bufnr, "t", "<C-\\>", function()
+    term:toggle()
+  end, "Toggle current terminal")
 end
 
 local function on_open(term)
-  terminal_maps(term.bufnr)
+  terminal_maps(term.bufnr, term)
   vim.cmd("startinsert")
 end
 
+local function each_terminal(callback)
+  for _, kind in pairs(terminals) do
+    for _, term in pairs(kind) do
+      callback(term)
+    end
+  end
+end
+
 local function close_other_terminals(target)
-  for _, term in pairs(terminals) do
+  each_terminal(function(term)
     if term ~= target and term:is_open() then
       term:close()
     end
-  end
+  end)
 end
 
 local function toggle(term, size)
@@ -31,24 +47,27 @@ local function toggle(term, size)
   term:toggle(size)
 end
 
-function M.setup()
-  local Terminal = require("toggleterm.terminal").Terminal
+local function project_shell(project_root)
+  if not terminals.shell[project_root] then
+    terminals.shell[project_root] = Terminal:new({
+      display_name = "shell",
+      direction = "horizontal",
+      dir = project_root,
+      hidden = true,
+      close_on_exit = true,
+      on_open = on_open,
+    })
+  end
+  return terminals.shell[project_root]
+end
 
-  terminals.shell = Terminal:new({
-    display_name = "shell",
-    direction = "horizontal",
-    dir = "git_dir",
-    hidden = true,
-    close_on_exit = true,
-    on_open = on_open,
-  })
-
-  if vim.fn.executable("lazygit") == 1 then
-    terminals.git = Terminal:new({
+local function project_git(project_root)
+  if not terminals.git[project_root] then
+    terminals.git[project_root] = Terminal:new({
       cmd = "lazygit",
       display_name = "lazygit",
       direction = "float",
-      dir = "git_dir",
+      dir = project_root,
       hidden = true,
       close_on_exit = true,
       float_opts = {
@@ -63,19 +82,24 @@ function M.setup()
       on_open = on_open,
     })
   end
+  return terminals.git[project_root]
+end
+
+function M.setup()
+  Terminal = require("toggleterm.terminal").Terminal
 end
 
 function M.toggle_shell()
   local size = math.min(14, math.max(5, vim.o.lines - 4))
-  toggle(terminals.shell, size)
+  toggle(project_shell(root.get(0)), size)
 end
 
 function M.toggle_git()
-  if not terminals.git then
+  if vim.fn.executable("lazygit") ~= 1 then
     vim.notify("lazygit is not installed", vim.log.levels.WARN)
     return
   end
-  toggle(terminals.git)
+  toggle(project_git(root.get(0)))
 end
 
 return M

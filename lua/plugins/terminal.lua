@@ -9,8 +9,15 @@ return {
         function()
           require("config.terminal").toggle_shell()
         end,
-        mode = { "n", "t" },
+        mode = "n",
         desc = "Toggle shell terminal",
+      },
+      {
+        "<leader>tt",
+        function()
+          require("config.terminal").toggle_shell()
+        end,
+        desc = "Toggle project terminal",
       },
       {
         "<leader>gg",
