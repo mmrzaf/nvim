@@ -33,6 +33,13 @@ return {
           map_gx = false,
           max_buf_lines = max_markview_lines,
           filetypes = { "markdown" },
+          condition = function(bufnr)
+            local allowed = preview_allowed(bufnr)
+            if not allowed then
+              return false
+            end
+            return nil
+          end,
         },
         latex = { enable = false },
         typst = { enable = false },
@@ -53,19 +60,16 @@ return {
         group = group,
         pattern = "markdown",
         callback = function(args)
-          vim.keymap.set("n", "<leader>mp", function()
+          local keymaps = require("config.keymaps")
+          keymaps.bufmap(args.buf, "n", "<leader>mp", function()
             run("Markview toggle")
-          end, {
-            buffer = args.buf,
-            desc = "Toggle Markdown preview",
-          })
+          end, "Toggle Markdown preview")
 
-          vim.keymap.set("n", "<leader>ms", function()
+          keymaps.bufmap(args.buf, "n", "<leader>ms", function()
             run("Markview splitToggle")
-          end, {
-            buffer = args.buf,
-            desc = "Toggle Markdown split preview",
-          })
+          end, "Toggle Markdown split preview")
+
+          keymaps.refresh_clue(args.buf)
         end,
       })
     end,
