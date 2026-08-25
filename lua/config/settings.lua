@@ -17,7 +17,6 @@ M.treesitter = {
     "jsdoc",
     "json",
     "json5",
-    "jsonc",
     "lua",
     "markdown",
     "markdown_inline",
@@ -67,7 +66,7 @@ M.mason = {
   ensure_installed = {
     { name = "vtsls", version = "0.3.0", requires = { "node", "npm" } },
     { name = "eslint-lsp", version = "4.10.0", requires = { "node", "npm" } },
-    { name = "shfmt", version = "3.13.1" },
+    { name = "shfmt", version = "v3.13.1" },
   },
 }
 
