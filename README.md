@@ -25,11 +25,11 @@ Recommended:
 - `wl-clipboard` on Wayland
 - `xclip` or `xsel` on X11
 
-Language servers, formatters, linters, and compilers are intentionally environment-dependent. Install only the tools needed by the projects you work on; they do not all need to exist globally.
+Language servers, most formatters, linters, and compilers are intentionally environment-dependent. Install only the tools needed by the projects you work on; they do not all need to exist globally. Shell formatting is the exception: Mason installs a pinned `shfmt` globally for Bash and POSIX shell buffers.
 
-For TypeScript/JavaScript, Mason automatically ensures the lightweight editor-side `vtsls` and `eslint-lsp` wrappers when Node/npm are available. The project/dev environment still owns `typescript`, `eslint`, Prettier, plugins, configs, and their versions.
+Mason automatically ensures the lightweight editor-side `vtsls` and `eslint-lsp` wrappers when Node/npm are available, plus the global `shfmt` shell formatter. The project/dev environment still owns `typescript`, `eslint`, Prettier, plugins, configs, and their versions.
 
-The wrapper versions are pinned in `config.settings` for reproducible clean installs. Normal startup installs only missing wrappers and never silently changes an installed version; use `:ConfigSyncMason` (or `<leader>lM`) when you intentionally want to reconcile them to the configured pins.
+The Mason tool versions are pinned in `config.settings` for reproducible clean installs. Normal startup installs only missing tools and never silently changes an installed version; use `:ConfigSyncMason` (or `<leader>lM`) when you intentionally want to reconcile them to the configured pins.
 
 ## Clean install
 
@@ -143,7 +143,7 @@ After installing a server with Mason or changing Neovim's process `PATH`, run:
 :ConfigRefreshLsp
 ```
 
-LSP lifecycle mappings use Neovim 0.12's native config/client model. `<leader>le` / `<leader>ld` explicitly enable/disable a relevant configured LSP for the **session-wide** config state; `:ConfigRefreshLsp` preserves those manual disables. `<leader>lR` restarts clients for the current buffer, `<leader>lx` stops them, and `<leader>li` shows attached clients. `<leader>lM` explicitly reconciles the pinned Mason wrappers.
+LSP lifecycle mappings use Neovim 0.12's native config/client model. `<leader>le` / `<leader>ld` explicitly enable/disable a relevant configured LSP for the **session-wide** config state; `:ConfigRefreshLsp` preserves those manual disables. `<leader>lR` restarts clients for the current buffer, `<leader>lx` stops them, and `<leader>li` shows attached clients. `<leader>lM` explicitly reconciles the pinned Mason tools.
 
 LSP document references highlight on `CursorHold` and clear as you move. TypeScript/JavaScript VTSLS attachments enable inlay hints by default; `<leader>ui` toggles them.
 
@@ -168,7 +168,7 @@ Format-on-save is disabled. Manual formatting is synchronous:
 - `<leader>cf`: format buffer
 - visual `<leader>cf`: format selection
 
-Conform resolves formatter availability when formatting is requested. Project/environment-owned Prettier filetypes (JavaScript/TypeScript, HTML, CSS, JSON/JSONC/JSON5, YAML, and Markdown) use a project-aware Prettier resolver that supports local `node_modules`, Yarn Plug'n'Play via `yarn exec`, and `PATH` fallback. They intentionally do **not** silently fall back to LSP formatting when Prettier is absent. Other languages may use LSP formatting as a fallback when their external formatter is unavailable.
+Conform resolves formatter availability when formatting is requested. Bash and POSIX shell buffers use the globally Mason-managed `shfmt`. Project/environment-owned Prettier filetypes (JavaScript/TypeScript, HTML, CSS, JSON/JSONC/JSON5, YAML, and Markdown) use a project-aware Prettier resolver that supports local `node_modules`, Yarn Plug'n'Play via `yarn exec`, and `PATH` fallback. They intentionally do **not** silently fall back to LSP formatting when Prettier is absent. Other languages may use LSP formatting as a fallback when their external formatter is unavailable.
 
 ## Completion
 

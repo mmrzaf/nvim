@@ -12,15 +12,29 @@ local function refresh_lsp()
   end)
 end
 
+local function missing_requirement(spec)
+  for _, executable in ipairs(spec.requires or {}) do
+    if vim.fn.executable(executable) ~= 1 then
+      return executable
+    end
+  end
+end
+
 local function install_specs(targets, notify)
   if #targets == 0 then
     return
   end
 
-  if vim.fn.executable("node") ~= 1 or vim.fn.executable("npm") ~= 1 then
-    if notify then
-      vim.notify("Node/npm are required for the configured Mason TypeScript wrappers", vim.log.levels.WARN)
+  local installable = {}
+  for _, spec in ipairs(targets) do
+    local missing = missing_requirement(spec)
+    if not missing then
+      installable[#installable + 1] = spec
+    elseif notify then
+      vim.notify(string.format("%s is required to install Mason package %s", missing, spec.name), vim.log.levels.WARN)
     end
+  end
+  if #installable == 0 then
     return
   end
 
@@ -35,7 +49,7 @@ local function install_specs(targets, notify)
       end
     end
 
-    for _, spec in ipairs(targets) do
+    for _, spec in ipairs(installable) do
       local ok, package = pcall(registry.get_package, spec.name)
       if not ok then
         vim.schedule(function()
@@ -95,11 +109,6 @@ local function ensure_missing_packages()
 end
 
 local function sync_pinned_packages()
-  if vim.fn.executable("node") ~= 1 or vim.fn.executable("npm") ~= 1 then
-    vim.notify("Node/npm are required for the configured Mason TypeScript wrappers", vim.log.levels.ERROR)
-    return
-  end
-
   local registry = require("mason-registry")
   registry.refresh(function()
     local queue = vim.deepcopy(specs())
@@ -113,6 +122,15 @@ local function sync_pinned_packages()
         vim.schedule(function()
           vim.notify("Pinned Mason packages are synchronized")
         end)
+        return
+      end
+
+      local missing = missing_requirement(spec)
+      if missing then
+        vim.schedule(function()
+          vim.notify(string.format("%s is required to install Mason package %s", missing, spec.name), vim.log.levels.WARN)
+        end)
+        next_package()
         return
       end
 

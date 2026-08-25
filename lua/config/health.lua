@@ -136,14 +136,16 @@ function M.check()
   executable("node", "warn")
   executable("npm", "warn")
 
-  vim.health.start("Pinned Mason editor wrappers")
+  vim.health.start("Pinned Mason editor tools")
   local registry_ok, registry = pcall(require, "mason-registry")
   if not registry_ok then
-    vim.health.warn("mason-registry is unavailable; pinned wrapper versions could not be checked")
+    vim.health.warn("mason-registry is unavailable; pinned tool versions could not be checked")
   else
     for _, spec in ipairs(settings.mason.ensure_installed or {}) do
       if not registry.is_installed(spec.name) then
-        vim.health.warn(string.format("%s@%s is not installed; Mason will install it when Node/npm are available", spec.name, spec.version))
+        local requirements = table.concat(spec.requires or {}, "/")
+        local suffix = requirements ~= "" and " when " .. requirements .. " are available" or ""
+        vim.health.warn(string.format("%s@%s is not installed; Mason will install it%s", spec.name, spec.version, suffix))
       else
         local package_ok, package = pcall(registry.get_package, spec.name)
         local installed = package_ok and package:get_installed_version() or nil
@@ -177,9 +179,12 @@ function M.check()
   end
 
   vim.health.start("Formatters in current environment")
+  local mason_managed_formatters = { shfmt = true }
   for _, name in ipairs(settings.formatting.executables) do
     if vim.fn.executable(name) == 1 then
       vim.health.ok(name .. " found")
+    elseif mason_managed_formatters[name] then
+      vim.health.warn(name .. " unavailable; Mason is configured to install it globally")
     else
       vim.health.info(name .. " unavailable; Conform will use it only when the current project/environment provides it")
     end

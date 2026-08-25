@@ -62,11 +62,12 @@ M.typescript = {
 }
 
 M.mason = {
-  -- Stable editor-side wrappers. Project-specific TypeScript, ESLint, and
+  -- Stable editor-side tools. Project-specific TypeScript, ESLint, and
   -- Prettier versions remain project/environment-owned.
   ensure_installed = {
-    { name = "vtsls", version = "0.3.0" },
-    { name = "eslint-lsp", version = "4.10.0" },
+    { name = "vtsls", version = "0.3.0", requires = { "node", "npm" } },
+    { name = "eslint-lsp", version = "4.10.0", requires = { "node", "npm" } },
+    { name = "shfmt", version = "3.13.1" },
   },
 }
 
