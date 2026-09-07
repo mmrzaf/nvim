@@ -1,19 +1,12 @@
 local large_file = require("util.large_file")
 local js_tool = require("util.js_tool")
 
-local external_only = {
-  javascript = true,
-  javascriptreact = true,
-  typescript = true,
-  typescriptreact = true,
-  html = true,
-  css = true,
-  json = true,
-  json5 = true,
-  jsonc = true,
-  yaml = true,
-  markdown = true,
-}
+-- Filetypes where Prettier is the only acceptable formatter: never fall back to
+-- an LSP formatter just because the project has no Prettier CLI.
+local external_only = {}
+for _, ft in ipairs(require("config.settings").filetypes.prettier) do
+  external_only[ft] = true
+end
 
 local function buffer_dir(bufnr)
   local name = vim.api.nvim_buf_get_name(bufnr)

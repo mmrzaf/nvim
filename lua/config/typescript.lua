@@ -3,12 +3,11 @@ local js_tool = require("util.js_tool")
 local M = {}
 
 local jobs = {}
-local ts_filetypes = {
-  javascript = true,
-  javascriptreact = true,
-  typescript = true,
-  typescriptreact = true,
-}
+local ts_filetype_list = require("config.settings").filetypes.typescript
+local ts_filetypes = {}
+for _, ft in ipairs(ts_filetype_list) do
+  ts_filetypes[ft] = true
+end
 
 local tsconfig_names = { "tsconfig.json", "jsconfig.json" }
 local eslint_config_names = {
@@ -408,7 +407,7 @@ function M.setup()
   local group = vim.api.nvim_create_augroup("ConfigTypeScript", { clear = true })
   vim.api.nvim_create_autocmd("FileType", {
     group = group,
-    pattern = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+    pattern = ts_filetype_list,
     callback = function(args)
       local keymaps = require("config.keymaps")
       local function map(lhs, rhs, desc)

@@ -60,6 +60,46 @@ M.typescript = {
   project_diagnostics = true,
 }
 
+-- Single source of truth for the filetype groups the config keys behaviour off
+-- of, so the lists in autocmds/formatting/typescript no longer drift apart.
+M.filetypes = {
+  -- Prettier owns formatting for these; Conform must not fall back to an LSP.
+  prettier = {
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "html",
+    "css",
+    "json",
+    "json5",
+    "jsonc",
+    "yaml",
+    "markdown",
+  },
+  -- TypeScript/JavaScript project tooling: tsc, eslint, vtsls source actions.
+  typescript = {
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+  },
+  -- Two-space indent overrides for web/markup/config buffers.
+  two_space_indent = {
+    "lua",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "json",
+    "json5",
+    "jsonc",
+    "yaml",
+    "html",
+    "css",
+  },
+}
+
 M.mason = {
   -- Stable editor-side tools. Project-specific TypeScript, ESLint, and
   -- Prettier versions remain project/environment-owned.

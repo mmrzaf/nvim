@@ -1,5 +1,6 @@
 local group = vim.api.nvim_create_augroup("ConfigCore", { clear = true })
 local large_file = require("util.large_file")
+local filetypes = require("config.settings").filetypes
 local clipboard_warning_shown = false
 
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -80,19 +81,7 @@ vim.api.nvim_create_autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
 
 vim.api.nvim_create_autocmd("FileType", {
   group = group,
-  pattern = {
-    "lua",
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "json",
-    "json5",
-    "jsonc",
-    "yaml",
-    "html",
-    "css",
-  },
+  pattern = filetypes.two_space_indent,
   callback = function(args)
     vim.bo[args.buf].shiftwidth = 2
     vim.bo[args.buf].tabstop = 2
