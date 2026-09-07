@@ -58,6 +58,8 @@ o.completeopt = { "menu", "menuone", "noselect" }
 o.pumheight = 12
 
 o.laststatus = 3
+-- Kept: the stock statusline does not show the mode, so the echo line is the
+-- only mode indicator.
 o.showmode = true
 o.showtabline = 1
 o.cmdheight = 1
