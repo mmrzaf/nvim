@@ -7,8 +7,13 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   callback = function()
     vim.hl.on_yank({ timeout = 150 })
 
+    -- Mirror only the unnamed-register yank to the system clipboard. Yanks into
+    -- a named register ("qyy) and non-yank operators stay local.
     local event = vim.v.event
     if event.operator ~= "y" then
+      return
+    end
+    if event.regname ~= "" and event.regname ~= '"' and event.regname ~= "+" and event.regname ~= "*" then
       return
     end
 
