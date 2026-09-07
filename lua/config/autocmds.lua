@@ -46,9 +46,11 @@ vim.api.nvim_create_autocmd("BufReadPost", {
   callback = function(args)
     large_file.check_lines(args.buf)
 
+    local restore_pos = vim.bo[args.buf].buftype == ""
+      and not vim.tbl_contains({ "gitcommit", "gitrebase", "hgcommit" }, vim.bo[args.buf].filetype)
     local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
     local line_count = vim.api.nvim_buf_line_count(args.buf)
-    if vim.api.nvim_get_current_buf() == args.buf and mark[1] > 0 and mark[1] <= line_count then
+    if restore_pos and vim.api.nvim_get_current_buf() == args.buf and mark[1] > 0 and mark[1] <= line_count then
       pcall(vim.api.nvim_win_set_cursor, 0, mark)
     end
 
