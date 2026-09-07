@@ -20,7 +20,7 @@ return {
   {
     "OXY2DEV/markview.nvim",
     version = "28.*",
-    lazy = false,
+    ft = { "markdown" },
     dependencies = {
       "catppuccin/nvim",
       "nvim-treesitter/nvim-treesitter",
