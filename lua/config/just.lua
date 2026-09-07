@@ -1,4 +1,4 @@
-local settings = require("config.settings").dev
+local settings = require("config.settings").just
 local root = require("util.root")
 local shellwords = require("util.shellwords")
 

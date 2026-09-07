@@ -20,4 +20,4 @@ require("config.autocmds")
 require("config.typescript").setup()
 require("config.lazy")
 
-require("config.dev").setup()
+require("config.just").setup()

@@ -159,7 +159,7 @@ M.formatting = {
   },
 }
 
-M.dev = {
+M.just = {
   log_height = 12,
   max_log_lines = 5000,
 }
