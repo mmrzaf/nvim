@@ -162,10 +162,18 @@ function M.check()
     end
   end
 
+  -- Mason package names from the pinned list (they equal the formatter binary
+  -- names; LSP wrappers are mapped separately below).
+  local mason_packages = {}
+  for _, spec in ipairs(settings.mason.ensure_installed or {}) do
+    mason_packages[spec.name] = true
+  end
+
   vim.health.start("LSP servers in current environment")
   local mason_managed = {
-    eslint = true,
-    vtsls = true,
+    eslint = mason_packages["eslint-lsp"] == true,
+    vtsls = mason_packages["vtsls"] == true,
+    ruff = mason_packages["ruff"] == true,
   }
   for _, server in ipairs(settings.lsp.servers) do
     local binary = settings.lsp.executables[server]
@@ -181,12 +189,11 @@ function M.check()
   end
 
   vim.health.start("Formatters in current environment")
-  local mason_managed_formatters = { shfmt = true }
   for _, name in ipairs(settings.formatting.executables) do
     if vim.fn.executable(name) == 1 then
       vim.health.ok(name .. " found")
-    elseif mason_managed_formatters[name] then
-      vim.health.warn(name .. " unavailable; Mason is configured to install it globally")
+    elseif mason_packages[name] then
+      vim.health.warn(name .. " unavailable; Mason is configured to install it globally (run :ConfigSyncMason)")
     else
       vim.health.info(name .. " unavailable; Conform will use it only when the current project/environment provides it")
     end

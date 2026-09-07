@@ -101,12 +101,23 @@ M.filetypes = {
 }
 
 M.mason = {
-  -- Stable editor-side tools. Project-specific TypeScript, ESLint, and
-  -- Prettier versions remain project/environment-owned.
+  -- Pinned editor-side tools Mason keeps globally available so Conform / the
+  -- LSP layer stop reporting "missing" when a project does not vendor its own.
+  -- A project-local copy (node_modules/.bin, a toolchain) still wins over these;
+  -- js_tool.resolve() only falls back to PATH, where Mason prepends its bin.
   ensure_installed = {
+    -- Language servers / LSP wrappers.
     { name = "vtsls", version = "0.3.0", requires = { "node", "npm" } },
     { name = "eslint-lsp", version = "4.10.0", requires = { "node", "npm" } },
+    -- Formatters.
+    { name = "stylua", version = "v2.5.2" },
+    { name = "prettier", version = "3.9.6", requires = { "node", "npm" } },
+    { name = "ruff", version = "0.16.6" },
+    { name = "taplo", version = "0.10.0" },
     { name = "shfmt", version = "v3.13.1" },
+    { name = "clang-format", version = "23.1.0" },
+    { name = "gofumpt", version = "v0.11.0", requires = { "go" } },
+    { name = "goimports", version = "v0.49.0", requires = { "go" } },
   },
 }
 

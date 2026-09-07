@@ -25,11 +25,11 @@ Recommended:
 - `wl-clipboard` on Wayland
 - `xclip` or `xsel` on X11
 
-Language servers, most formatters, linters, and compilers are intentionally environment-dependent. Install only the tools needed by the projects you work on; they do not all need to exist globally. Shell formatting is the exception: Mason installs a pinned `shfmt` globally for Bash and POSIX shell buffers.
+Language servers, linters, and compilers stay environment-dependent: install only the ones your projects need. Formatters are the exception — Mason keeps a pinned global set (`stylua`, `prettier`, `ruff`, `taplo`, `shfmt`, `clang-format`, and `gofumpt`/`goimports` when Go is present) so Conform stops reporting "formatter missing" outside a fully provisioned project. A project-local formatter (`node_modules/.bin`, a toolchain binary) always takes precedence over the Mason copy; the global is only a fallback.
 
-Mason automatically ensures the lightweight editor-side `vtsls` and `eslint-lsp` wrappers when Node/npm are available, plus the global `shfmt` shell formatter. The project/dev environment still owns `typescript`, `eslint`, Prettier, plugins, configs, and their versions.
+Mason also ensures the editor-side `vtsls` and `eslint-lsp` wrappers when Node/npm are available. The project/dev environment still owns `typescript`, `eslint`, Prettier configs, plugins, and their versions — only the fallback binary is global.
 
-The Mason tool versions are pinned in `config.settings` for reproducible clean installs. Normal startup installs only missing tools and never silently changes an installed version; use `:ConfigSyncMason` (or `<leader>lM`) when you intentionally want to reconcile them to the configured pins.
+The Mason tool versions are pinned in `config.settings` for reproducible clean installs. Normal startup installs only missing tools and never silently changes an installed version; use `:ConfigSyncMason` (or `<leader>lM`) when you intentionally want to reconcile them to the configured pins. Installs run asynchronously — after adding tools, watch progress with `:Mason`.
 
 ## Clean install
 
