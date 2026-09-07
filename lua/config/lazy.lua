@@ -36,7 +36,7 @@ lazy.setup({
     version = false,
   },
   install = {
-    colorscheme = { "catppuccin-nvim", "habamax", "default" },
+    colorscheme = { "catppuccin-mocha", "habamax", "default" },
   },
   checker = {
     enabled = false,
