@@ -14,7 +14,9 @@ local function terminal_maps(bufnr, term)
   keymaps.bufmap(bufnr, "t", "<C-j>", [[<Cmd>wincmd j<CR>]], "Window down")
   keymaps.bufmap(bufnr, "t", "<C-k>", [[<Cmd>wincmd k<CR>]], "Window up")
   keymaps.bufmap(bufnr, "t", "<C-l>", [[<Cmd>wincmd l<CR>]], "Window right")
-  keymaps.bufmap(bufnr, "t", "<C-\\>", function()
+  -- Double <C-\> to hide the terminal; a bare <C-\> mapping would force a
+  -- timeoutlen wait on the canonical <C-\><C-n> mode-leave chord.
+  keymaps.bufmap(bufnr, "t", [[<C-\><C-\>]], function()
     term:toggle()
   end, "Toggle current terminal")
 end
