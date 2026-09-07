@@ -76,7 +76,9 @@ end
 
 local function check_treesitter()
   vim.health.start("Treesitter")
-  check_versioned_executable("tree-sitter", { "tree-sitter", "--version" }, { 0, 26, 1 }, "error")
+  -- Warn, not error: the CLI is only needed to build parsers from the `main`
+  -- branch, and the exact patch floor is advisory.
+  check_versioned_executable("tree-sitter", { "tree-sitter", "--version" }, { 0, 26, 1 }, "warn")
 
   for _, parser in ipairs(settings.treesitter.parsers) do
     local call_ok, loaded, err = pcall(vim.treesitter.language.add, parser)
