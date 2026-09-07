@@ -52,10 +52,11 @@ tar -xzf nvim-config.tar.gz -C "$config_home"
 nvim
 ```
 
-After plugin installation:
+Missing Treesitter parsers install automatically on first start (when the
+`tree-sitter` CLI is present). After plugin installation, verify with:
 
 ```vim
-:ConfigInstallParsers
+:ConfigInstallParsers  " only needed to force a re-scan
 :Mason
 :checkhealth
 :checkhealth config

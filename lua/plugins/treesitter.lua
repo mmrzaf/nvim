@@ -8,7 +8,16 @@ return {
     lazy = false,
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter").setup()
+      local ts = require("nvim-treesitter")
+      ts.setup()
+
+      -- The `main` branch installs nothing from setup() and `:TSUpdate` only
+      -- refreshes already-installed parsers, so a clean machine would have no
+      -- highlighting until :ConfigInstallParsers is run by hand. Install any
+      -- missing configured parser now (async, skips ones already present).
+      if vim.fn.executable("tree-sitter") == 1 then
+        pcall(ts.install, settings.parsers)
+      end
 
       local warned = {}
       local group = vim.api.nvim_create_augroup("ConfigTreesitter", { clear = true })
